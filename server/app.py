@@ -64,21 +64,65 @@ class Newsletters(Resource):
         )
 
         return response
-
 api.add_resource(Newsletters, '/newsletters')
+
+
+
+
 
 class NewsletterByID(Resource):
 
     def get(self, id):
 
-        response_dict = Newsletter.query.filter_by(id=id).first().to_dict()
+        response = Newsletter.query.filter_by(id=id).first()
 
-        response = make_response(
-            response_dict,
-            200,
-        )
+        if response:
+            response_dict = response.to_dict()
+            response = make_response(
+                response_dict,
+                200,
+            )
 
-        return response
+            return response
+        else:
+            response = 'Newsletter Not found'
+            return make_response(response, 404)
+        
+
+
+
+    def patch(self,id):
+        newsletter = Newsletter.query.filter_by(id=id).first()
+        for attr in request.form:
+            setattr(newsletter, attr, request.form.get(attr))
+             
+
+        db.session.add(newsletter)
+        db.session.commit()
+
+        newsletter_dict = newsletter.to_dict()
+
+        return make_response(newsletter_dict,200)
+    
+    def delete(self,id):
+        newsletter = Newsletter.query.filter_by(id=id).first()
+        db.session.delete(newsletter)
+        db.session.commit()
+
+
+        response_dict = {
+            'deleted_successful': True,
+            "message": "Newsletter Deleted",
+        }
+        
+
+        return make_response(response_dict,200)
+
+          
+
+
+
+        
 
 api.add_resource(NewsletterByID, '/newsletters/<int:id>')
 
